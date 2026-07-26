@@ -1,0 +1,36 @@
+name: 일일 추세 스캔
+
+on:
+  schedule:
+    # 평일 16:00 KST 목표 (07:00 UTC). GitHub 스케줄러 지연 대비 백업 1회 추가.
+    - cron: "0 7 * * 1-5"
+    - cron: "40 7 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 스캔 실행
+        run: python3 scan.py
+      - name: 커밋 & 푸시
+        run: |
+          git config user.name "trend-bot"
+          git config user.email "actions@github.com"
+          git add docs/data.json docs/history
+          if git diff --cached --quiet; then
+            echo "변경 없음 — 커밋 생략"; exit 0
+          fi
+          git commit -m "data: $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST 스캔"
+          git push

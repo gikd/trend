@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>오늘의 추세 종목</title>
+<style>
+:root {
+  --bg: #f7f6f3; --card: #ffffff; --line: #e5e2db;
+  --ink: #1a1a1a; --sub: #6b6b66; --mut: #98948b;
+  --up: #d63031; --down: #2867d6; --accent: #1a1a1a;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Pretendard", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  background: var(--bg); color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+.wrap { max-width: 640px; margin: 0 auto; padding: 20px 16px 60px; }
+header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.updated { font-size: 13px; color: var(--mut); }
+.subtitle { font-size: 14px; color: var(--sub); margin-bottom: 16px; }
+.tabs { display: flex; gap: 8px; margin-bottom: 6px; }
+.tab {
+  flex: 1; padding: 12px 0; font-size: 17px; font-weight: 600; text-align: center;
+  border-radius: 12px; border: 1px solid var(--line); background: var(--card);
+  color: var(--sub); cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.tab.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tabdesc { font-size: 14px; color: var(--sub); margin: 10px 2px 14px; }
+.sectors { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.sec-chip {
+  font-size: 13px; padding: 6px 11px; border-radius: 999px;
+  background: #fdeee0; color: #8a4b12; font-weight: 600;
+}
+.sec-chip small { font-weight: 400; opacity: 0.85; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 16px; margin-bottom: 10px; display: block;
+  text-decoration: none; color: inherit;
+}
+.card:active { background: #faf9f6; }
+.row1 { display: flex; align-items: center; gap: 8px; }
+.rank { font-size: 14px; color: var(--mut); font-weight: 600; min-width: 18px; }
+.name { font-size: 19px; font-weight: 700; letter-spacing: -0.3px; }
+.sec { font-size: 13px; color: var(--mut); }
+.badge {
+  font-size: 11.5px; font-weight: 600; padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+}
+.b-high { background: #fdecec; color: #b71c1c; }
+.b-near { background: #e8f0fd; color: #1d4fa8; }
+.b-new  { background: #e4f5ec; color: #146c43; }
+.b-warn { background: #fff3d6; color: #8a6100; }
+.row2 { display: flex; align-items: center; gap: 12px; margin-top: 9px; }
+.reasons { flex: 1; font-size: 13.5px; color: var(--sub); line-height: 1.5; min-width: 0; }
+.spark { flex-shrink: 0; }
+.nums { text-align: right; flex-shrink: 0; min-width: 64px; }
+.chg { font-size: 18px; font-weight: 700; }
+.chg.up { color: var(--up); } .chg.down { color: var(--down); }
+.m1 { font-size: 12.5px; color: var(--mut); margin-top: 2px; }
+.departed { font-size: 13.5px; color: var(--mut); margin: 14px 4px 0; line-height: 1.6; }
+.empty { text-align: center; color: var(--mut); padding: 40px 0; font-size: 15px; }
+footer {
+  margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line);
+  font-size: 12.5px; color: var(--mut); line-height: 1.7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171614; --card: #211f1c; --line: #34322d;
+    --ink: #eceae5; --sub: #a5a29a; --mut: #7d7a72;
+    --up: #ff6b6b; --down: #6ba3ff; --accent: #eceae5;
+  }
+  .tab.on { color: #171614; }
+  .card:active { background: #262421; }
+  .sec-chip { background: #3a2c1a; color: #ecb277; }
+  .b-high { background: #442222; color: #ff9c9c; }
+  .b-near { background: #1f2c44; color: #8fb4f2; }
+  .b-new  { background: #1d3527; color: #7fd0a2; }
+  .b-warn { background: #3d3316; color: #e3bb55; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>오늘의 추세 종목</h1>
+    <span class="updated" id="updated"></span>
+  </header>
+  <p class="subtitle">가는 종목이 더 갑니다 — 추세 좋은 차트만 골라 매일 4시에 갱신</p>
+
+  <div class="tabs">
+    <button class="tab on" data-k="today">오늘</button>
+    <button class="tab" data-k="week">이번주</button>
+    <button class="tab" data-k="month">이번달</button>
+  </div>
+  <p class="tabdesc" id="tabdesc"></p>
+
+  <div class="sectors" id="sectors"></div>
+  <div id="list"></div>
+  <p class="departed" id="departed"></p>
+
+  <footer>
+    투자 참고 자료이며 특정 종목의 매수·매도를 권유하지 않습니다.<br>
+    종목을 누르면 네이버 증권 차트로 이동합니다. 평일 오후 4시 자동 갱신.
+  </footer>
+</div>
+
+<script>
+const DESC = {
+  today: "오늘 시세가 강했던 추세 종목 — 거래대금이 붙으며 신고가권에서 움직인 순서",
+  week: "이번주 눈여겨볼 스윙 후보 — 1개월 추세가 강하고 20일선 위에서 노는 종목",
+  month: "이번달 큰 추세 종목 — 3~6개월 추세 상위, 주도 섹터 안의 주도주"
+};
+let DATA = null, cur = "today";
+
+function fmt(n) { return n.toLocaleString("ko-KR"); }
+
+function sparkSVG(pts, up) {
+  const w = 96, h = 34;
+  const min = Math.min(...pts), max = Math.max(...pts), range = max - min || 1;
+  const xy = pts.map((p, i) =>
+    (i / (pts.length - 1) * w).toFixed(1) + "," + (h - 2 - (p - min) / range * (h - 4)).toFixed(1)
+  ).join(" ");
+  const color = up ? "var(--up)" : "var(--down)";
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <polyline points="${xy}" fill="none" stroke="${color}" stroke-width="1.8"/></svg>`;
+}
+
+function badges(it) {
+  let b = "";
+  if (it.newHigh) b += `<span class="badge b-high">52주 신고가</span>`;
+  else if (it.near52 >= 0.95) b += `<span class="badge b-near">신고가 근접</span>`;
+  if (it.isNew) b += `<span class="badge b-new">NEW</span>`;
+  if (it.warn) b += `<span class="badge b-warn">급등락 주의</span>`;
+  return b;
+}
+
+function render() {
+  const items = DATA.lists[cur] || [];
+  document.getElementById("tabdesc").textContent = DESC[cur];
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.k === cur));
+
+  document.getElementById("list").innerHTML = items.length ? items.map((it, i) => {
+    const up = it.r1 >= 0;
+    return `<a class="card" href="https://m.stock.naver.com/domestic/stock/${it.code}/total" target="_blank" rel="noopener">
+      <div class="row1">
+        <span class="rank">${i + 1}</span>
+        <span class="name">${it.name}</span>
+        <span class="sec">${it.sector}</span>
+        ${badges(it)}
+      </div>
+      <div class="row2">
+        <div class="reasons">${it.reasons.join(" · ")}</div>
+        ${sparkSVG(it.spark, it.r21 >= 0)}
+        <div class="nums">
+          <div class="chg ${up ? "up" : "down"}">${up ? "+" : ""}${it.r1.toFixed(1)}%</div>
+          <div class="m1">1개월 ${it.r21 >= 0 ? "+" : ""}${it.r21.toFixed(0)}%</div>
+        </div>
+      </div>
+    </a>`;
+  }).join("") : `<p class="empty">오늘은 조건에 맞는 종목이 없습니다</p>`;
+
+  const dep = DATA.departed[cur] || [];
+  document.getElementById("departed").textContent =
+    dep.length ? "리스트 이탈: " + dep.join(", ") : "";
+}
+
+fetch("data.json?" + Date.now()).then(r => r.json()).then(d => {
+  DATA = d;
+  const td = d.tradingDate;
+  const date = new Date(td.slice(0, 4) + "-" + td.slice(4, 6) + "-" + td.slice(6, 8) + "T09:00:00+09:00");
+  const day = ["일", "월", "화", "수", "목", "금", "토"][date.getDay()];
+  document.getElementById("updated").textContent =
+    `${+td.slice(4, 6)}/${+td.slice(6, 8)} (${day}) 장 마감 기준`;
+  document.getElementById("sectors").innerHTML =
+    `<span class="sec-chip" style="background:transparent;color:var(--mut);padding-left:2px">주도 섹터</span>` +
+    d.sectors.filter(s => s.r5 > 0).slice(0, 5).map(s =>
+      `<span class="sec-chip">${s.name} <small>주간 ${s.r5 >= 0 ? "+" : ""}${s.r5.toFixed(1)}%</small></span>`
+    ).join("");
+  render();
+});
+document.querySelectorAll(".tab").forEach(t =>
+  t.addEventListener("click", () => { cur = t.dataset.k; render(); }));
+</script>
+</body>
+</html>
